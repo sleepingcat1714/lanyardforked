@@ -47,7 +47,7 @@ defmodule Lanyard.DiscordBot.DiscordApi do
   end
 
   def create_dm(recipient) do
-    {:ok, response} =
+    result =
       :post
       |> Finch.build(
         "#{@api_host}/users/@me/channels",
@@ -60,12 +60,18 @@ defmodule Lanyard.DiscordBot.DiscordApi do
       |> Finch.request(Lanyard.Finch)
       |> track_response()
 
-    case Jason.decode!(response.body) do
-      %{"id" => id} ->
-        id
+    case result do
+      {:ok, %Finch.Response{status: status, body: body}} when status in 200..299 ->
+        case Jason.decode(body) do
+          {:ok, %{"id" => id}} -> {:ok, id}
+          _ -> {:error, :invalid_response}
+        end
 
-      _ ->
-        :ok
+      {:ok, %Finch.Response{status: status}} ->
+        {:error, {:http_error, status}}
+
+      {:error, reason} ->
+        {:error, reason}
     end
   end
 
