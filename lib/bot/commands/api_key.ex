@@ -36,14 +36,21 @@ defmodule Lanyard.DiscordBot.Commands.ApiKey do
       ":x: Whoops, you just posted your API key, this is meant to stay private, regenerating this for you, check your DM"
     )
 
-    key = generate_api_key(user_id)
+    case DiscordApi.create_dm(user_id) do
+      {:ok, dm_channel} ->
+        key = generate_api_key(user_id)
 
-    dm_channel = DiscordApi.create_dm(user_id)
+        DiscordApi.send_message(
+          dm_channel,
+          ":repeat: **We've regenerated your api key as you used it in a K/V command.**\nYour new Lanyard API key is `#{key}`\n\n**ABSOLUTELY DO NOT SHARE OR POST THIS KEY ANYWHERE IT WILL ALLOW ANYONE TO MANAGE YOUR LANYARD K/V**\n*Run `.apikey` in this DM if you need to re-generate your key*"
+        )
 
-    DiscordApi.send_message(
-      dm_channel,
-      ":repeat: **We've regenerated your api key as you used it in a K/V command.**\nYour new Lanyard API key is `#{key}`\n\n**ABSOLUTELY DO NOT SHARE OR POST THIS KEY ANYWHERE IT WILL ALLOW ANYONE TO MANAGE YOUR LANYARD K/V**\n*Run `.apikey` in this DM if you need to re-generate your key*"
-    )
+      {:error, _reason} ->
+        DiscordApi.send_message(
+          original_channel,
+          ":warning: Couldn't DM you to deliver a new key (do you have DMs disabled?). Your old key has NOT been revoked - please open a DM with this bot and run `.apikey` there."
+        )
+    end
   end
 
   def generate_api_key(user_id) do
