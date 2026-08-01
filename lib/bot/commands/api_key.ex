@@ -48,7 +48,7 @@ defmodule Lanyard.DiscordBot.Commands.ApiKey do
       {:error, _reason} ->
         DiscordApi.send_message(
           original_channel,
-          ":warning: Couldn't DM you to deliver a new key (do you have DMs disabled?). Your old key has NOT been revoked - please open a DM with this bot and run `.apikey` there."
+          ":warning: Couldn't DM you to deliver a new key. Your old key has NOT been revoked, please open a DM with this bot and run `.apikey` there."
         )
     end
   end
